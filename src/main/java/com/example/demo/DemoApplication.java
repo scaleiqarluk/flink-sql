@@ -3,8 +3,12 @@ package com.example.demo;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -49,12 +53,17 @@ public class DemoApplication {
         Properties sinkProps = new Properties();
         sinkProps.put("bootstrap.servers", kafkaBroker);
 
-        FlinkKafkaProducer<String> kafkaProducer = new FlinkKafkaProducer<>(
-                targetTopic,
-                new SimpleStringSchema(),
-                sinkProps
-        );
-        filteredStream.addSink(kafkaProducer);
+        KafkaSink<String> kafkaSink = KafkaSink.<String>builder()
+                .setBootstrapServers(kafkaBroker)
+                .setRecordSerializer(KafkaRecordSerializationSchema
+                        .builder()
+                        .setTopic(targetTopic)
+                        .setValueSerializationSchema(new SimpleStringSchema())
+                        .build()
+                )
+                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .build();
+        filteredStream.sinkTo(kafkaSink);
 
         env.execute("Kafka Consumer Example");
     }
