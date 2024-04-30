@@ -1,20 +1,16 @@
 package com.example.demo;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.connector.base.DeliveryGuarantee;
-import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
-import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
+import org.apache.flink.connector.opensearch.sink.OpensearchSink;
+import org.apache.flink.connector.opensearch.sink.OpensearchSinkBuilder;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
-
-import java.util.Properties;
+import org.apache.http.HttpHost;
+import org.opensearch.action.index.IndexRequest;
+import org.opensearch.client.Requests;
 
 public class DemoApplication {
 
@@ -38,33 +34,27 @@ public class DemoApplication {
                 .build();
 
         DataStream<String> kafkaStream = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
+        kafkaStream.print();
+        OpensearchSink<String> sink = new OpensearchSinkBuilder<String>()
+                .setHosts(new HttpHost("localhost", 9200, "https"))
+                .setEmitter(
+                        (element, context, indexer) -> {
+                            // Create index request
+                            IndexRequest indexRequest = Requests.indexRequest()
+                                    .index("soundarya_index") // Specify your index name
+                                    .source("data", element);
 
-        String filterCriteria = "New Jersey";
-
-        SingleOutputStreamOperator filteredStream = kafkaStream.filter(new FilterFunction() {
-            @Override
-            public boolean filter(Object o) throws Exception {
-                return o.toString().contains(filterCriteria);
-            }
-        });
-        filteredStream.print();
-
-        // kafka producer
-        Properties sinkProps = new Properties();
-        sinkProps.put("bootstrap.servers", kafkaBroker);
-
-        KafkaSink<String> kafkaSink = KafkaSink.<String>builder()
-                .setBootstrapServers(kafkaBroker)
-                .setRecordSerializer(KafkaRecordSerializationSchema
-                        .builder()
-                        .setTopic(targetTopic)
-                        .setValueSerializationSchema(new SimpleStringSchema())
-                        .build()
+                            // Add index request to bulk processor
+                            indexer.add(indexRequest);
+                        }
                 )
-                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .setConnectionUsername("admin")
+                .setConnectionPassword("myPass2403")
+                .setAllowInsecure(true)
+                .setBulkFlushMaxActions(1)
                 .build();
-        filteredStream.sinkTo(kafkaSink);
 
+        kafkaStream.sinkTo(sink);
         env.execute("Kafka Consumer Example");
     }
 
