@@ -74,6 +74,17 @@
 			<version>2.10.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.32</version> <!-- Adjust version as needed -->
+		</dependency>
+
 		<!-- Kafka dependencies -->
 <!--		<dependency>-->
 <!--			<groupId>org.apache.kafka</groupId>-->
@@ -103,15 +114,15 @@
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
 				</configuration>
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<id>make-assembly</id>-->
-<!--						<phase>package</phase>-->
-<!--						<goals>-->
-<!--							<goal>single</goal>-->
-<!--						</goals>-->
-<!--					</execution>-->
-<!--				</executions>-->
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

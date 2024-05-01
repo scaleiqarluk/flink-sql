@@ -33,16 +33,11 @@ public class DemoApplication {
 
     // Read from Kafka topic "IngestorDataStreamDemo" -> Filter data -> insert in Kafka topic "target_topic"
 
-    private static Gson gson(){
-        return new Gson();
-    }
-
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         String kafkaBroker = "127.0.0.1:9092";
         String topic = "IngestorDataStreamDemo";
-        String targetTopic = "target_topic";
 
         // kafka consumer
         KafkaSource<String> kafkaSource = KafkaSource
@@ -75,9 +70,7 @@ public class DemoApplication {
                 .setConnectionUsername("admin")
                 .setConnectionPassword("myPass2403")
                 .setAllowInsecure(true)
-                .setBulkFlushMaxActions(1000)
-                .setBulkFlushMaxSizeMb(100)
-
+                .setBulkFlushMaxActions(10)
                 .setBulkFlushBackoffStrategy(FlushBackoffType.EXPONENTIAL, 5, 10000)
                 .build();
 
