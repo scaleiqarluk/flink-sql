@@ -1,0 +1,5 @@
+table.exec.max-table-result-rows: 1000
+jobmanager.memory.process.size: 1g
+jobmanager.rpc.address: jobmanager
+blob.server.port: 6124
+query.server.port: 6125

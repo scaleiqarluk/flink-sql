@@ -106,6 +106,8 @@ services:
     command: jobmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+    volumes:
+      - ./flink-conf.yaml:/opt/flink/conf/flink-conf.yaml
 
   flink-taskmanager:
     image: apache/flink:1.14.3

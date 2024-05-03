@@ -1,7 +1,10 @@
 package com.example.demo;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
@@ -22,14 +25,19 @@ import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 
+import javax.naming.Context;
 import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyStore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FlinkSQLOpensearch {
     public static void main(String[] args) throws Exception {
+
+        Logger.getLogger("org.apache.flink").setLevel(Level.WARNING);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         EnvironmentSettings settings = EnvironmentSettings.newInstance().inStreamingMode().build();
@@ -47,11 +55,35 @@ public class FlinkSQLOpensearch {
         // Run SQL query
         Table result = tableEnv.sqlQuery("SELECT * FROM OpenSearchTable");
 
+        DataStream<Row> resultStream = tableEnv.toAppendStream(result, Row.class);
+        resultStream.print();
         // Print the result table
-        tableEnv.toAppendStream(result, Row.class).print();
-
+//        tableEnv.toAppendStream(result, Row.class).print();
+        DataStreamSink<Row> rowDataStreamSink = tableEnv.toAppendStream(result, Row.class)
+                .addSink(new TabularSink());
         // Execute the Flink job
         env.execute("OpenSearch SQL Job");
+    }
+
+    public static class TabularSink extends RichSinkFunction<Row> {
+        private boolean headerPrinted = false;
+        private long count = 0;
+
+        @Override
+        public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
+            // Print header when the sink is opened
+            System.out.printf("%10s %15s %20s %30s %-5s\n", "ID", "Time", "Server", "Title", "Title_url");
+            System.out.println("------------------------------------------------------------------------------------------------------------------------");
+            headerPrinted = true;
+        }
+
+        @Override
+        public void invoke(Row value, Context context) throws Exception {
+            count++;
+            Row row1 = (Row) value.getFieldAs(0);
+            // Print row data
+            System.out.printf("%10s %15s %20s %30s %-5s\n", row1.getField(0), row1.getField(1), row1.getField(2), row1.getField(3), row1.getField(4));
+        }
     }
 
     // Custom source to stream data from OpenSearch
@@ -60,7 +92,7 @@ public class FlinkSQLOpensearch {
 
         @Override
         public void run(SourceContext<Row> ctx) throws Exception {
-
+            System.out.println("ctx");
             try{
                 String java_path = System.getenv("JAVA_HOME");
 
@@ -92,10 +124,11 @@ public class FlinkSQLOpensearch {
                 SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
                 for (SearchHit hit : searchResponse.getHits().getHits()) {
                     String id = hit.getId();
+                    int time = Integer.parseInt(hit.getSourceAsMap().get("timestamp").toString());
                     String server_url = hit.getSourceAsMap().get("server_url").toString();
                     String title = hit.getSourceAsMap().get("title").toString();
                     String title_url = hit.getSourceAsMap().get("title_url").toString();
-                    Row row = Row.of(id, server_url, title, title_url);
+                    Row row = Row.of(id, time, server_url, title, title_url);
                     ctx.collect(row);
                 }
             } catch (IOException e) {
