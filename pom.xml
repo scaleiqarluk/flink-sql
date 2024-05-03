@@ -42,6 +42,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-table-api-java-bridge</artifactId>
+			<version>${flink.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-table-planner_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.opensearch</groupId>
 			<artifactId>opensearch</artifactId>
 			<version>2.5.0</version>
@@ -61,6 +73,11 @@
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-opensearch</artifactId>
 			<version>1.1.0-1.18</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-elasticsearch7</artifactId>
+			<version>3.0.1-1.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -95,6 +112,7 @@
 
 	<build>
 		<plugins>
+			<!--
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -123,6 +141,16 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

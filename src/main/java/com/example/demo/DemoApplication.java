@@ -1,6 +1,5 @@
 package com.example.demo;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -35,6 +34,7 @@ public class DemoApplication {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
 
         String kafkaBroker = "127.0.0.1:9092";
         String topic = "IngestorDataStreamDemo";
