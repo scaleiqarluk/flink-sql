@@ -50,3 +50,41 @@ Exception in thread "main" org.apache.flink.table.api.ValidationException: Could
         at org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(StreamTableEnvironment.java:122)
         at com.example.demo.FlinkSQLOpensearch.main(FlinkSQLOpensearch.java:42)
 ```
+
+
+<br><br>
+## Create custom Opensearch image with AWS CLI and  S3 support
+
+```sh
+FROM opensearchproject/opensearch:latest
+
+# Switch to root user
+USER root
+
+# Install AWS CLI
+RUN yum update -y && \
+    yum install -y aws-cli && \
+    yum clean all
+
+# Install OpenSearch S3 plugin
+RUN bin/opensearch-plugin install --batch repository-s3
+
+# Switch back to non-root user if desired
+USER opensearch
+```
+
+<br><br>
+## Load S3 data in Opensearch Dashboard using Logstash
+
+### 1. Create custom docker image of Logstash to support opensearch output
+
+```sh
+FROM docker.elastic.co/logstash/logstash:8.13.4
+
+# Install logstash-output-opensearch plugin
+RUN logstash-plugin install logstash-output-opensearch
+```
+Build the custom images
+```sh
+docker build -t my-logstash-with-opensearch . 
+```

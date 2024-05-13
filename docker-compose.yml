@@ -24,9 +24,11 @@ services:
       - plugins.security.ssl.http.pemtrustedcas_filepath=/usr/share/opensearch/config/certs/localhost.crt
     ports:
       - "9200:9200"
+      - "9600:9600" # For node communication
       - "9300:9300"
     volumes:
       - ./opensearch-config:/usr/share/opensearch/config/certs
+      # - opensearch-data:/usr/share/opensearch/data
     ulimits:
       memlock:
         soft: -1
@@ -44,6 +46,19 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
     networks:
     - opensearch-net
+
+  logstash:
+    image: my-logstash-with-opensearch
+    container_name: logstash
+    volumes:
+      - ./logstash-config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash-config:/usr/share/logstash/config/certs
+    environment:
+      - "xpack.monitoring.enabled=false"
+    depends_on:
+      - opensearch
+    networks:
+      - opensearch-net
 
   kafka_b:
     image: bitnami/kafka:3.4
@@ -69,22 +84,6 @@ services:
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
       # - BITNAMI_DEBUG=yes
       - KAFKA_CFG_NUM_PARTITIONS=2
-
-  kafka-ui:
-    container_name: kafka-ui
-    image: provectuslabs/kafka-ui:latest
-    depends_on:
-      - kafka_b
-    ports:
-      - 8090:8080
-    environment:
-      DYNAMIC_CONFIG_ENABLED: 'true'
-      # LOGGING_LEVEL_ROOT: 'DEBUG'
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: localhost:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: localhost:2181
-    # volumes:
-      # - /tools/kafka/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
@@ -125,6 +124,7 @@ services:
 volumes:
   kafka_data:
     driver: local
+  opensearch-data:
 
 networks:
   opensearch-net:
