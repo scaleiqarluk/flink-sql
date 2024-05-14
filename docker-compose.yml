@@ -86,7 +86,7 @@ services:
       - KAFKA_CFG_NUM_PARTITIONS=2
 
   zookeeper:
-    image: wurstmeister/zookeeper:latest
+    image: zookeeper:latest
     ulimits:
       nofile:
         soft: 65536
