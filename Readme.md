@@ -104,7 +104,10 @@ https://github.com/scaleiqarluk/scaleiQingestor_new
 # clone the git repo outside of "Flink-Kafka-consumer"
 git clone https://github.com/scaleiqarluk/scaleiQingestor_new
 
-# get inside the cloned folder
+# get inside the cloned folder and compile
+./gradlew clean build 
+
+# run the built jar
 java -jar build/libs/ingestor-1.0-SNAPSHOT.jar
 ```
 <br>
