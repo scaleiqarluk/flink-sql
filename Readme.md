@@ -169,3 +169,22 @@ Flink-Kafka-consumer
     ├── flink-kafka-consumer-1.0-SNAPSHOT.jar
     ├── flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
+
+Submit jobs to Apache Flink
+```sh
+java --version
+# openjdk 17.0.11 2024-04-16
+# OpenJDK Runtime Environment (build 17.0.11+9)
+# OpenJDK 64-Bit Server VM (build 17.0.11+9, mixed mode, sharing)
+
+mvn -v
+# Apache Maven 3.8.8 (4c87b05d9aedce574290d1acc98575ed5eb6cd39)
+# Maven home: /opt/mvn8
+# Java version: 17.0.11, vendor: N/A, runtime: /usr/lib/jvm/java-17-openjdk
+# Default locale: en_IN, platform encoding: UTF-8
+# OS name: "linux", version: "6.9.0-1-manjaro", arch: "amd64", family: "unix"
+
+docker cp target/flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar jobmanager:/flink-consumer-0.0.1-SNAPSHOT.jar
+
+docker exec -it jobmanager ./bin/flink run -c com.example.demo.FlinkSQLOpensearch /flink-consumer-0.0.1-SNAPSHOT.jar
+```
