@@ -46,7 +46,7 @@ openssl req -new -key localhost.key -out localhost.csr -subj "/CN=localhost" -ad
 openssl x509 -req -in localhost.csr -out localhost.crt -signkey localhost.key -days 365
 
 # Step 4: Add Certificate to Java Truststore:
-keytool -import -file localhost.crt -alias localhost -keystore $JAVA_HOME/lib/security/cacerts
+sudo keytool -import -file localhost.crt -alias localhost -keystore $JAVA_HOME/lib/security/cacerts
 
 # List certificates
 keytool -list -keystore $JAVA_HOME/lib/security/cacerts 
@@ -62,11 +62,12 @@ RUN logstash-plugin install logstash-output-opensearch
 ```
 Build the custom images
 ```sh
+cd logstash_custom_image
 docker build -t my-logstash-with-opensearch . 
 ```
 <br>
 
-## 5. Steps to start the Docker containers
+## 5. Update logstash files
 ```sh
 # Update aws accesskey and secret in this file 
 logstash-config/logstash.conf
@@ -74,8 +75,9 @@ logstash-config/logstash.conf
 # Place the localhost.crt in this folder (this file created in Step 3.Create SSL certificate)
 logstash-config
 ```
+<br>
 
-1. Start docker compose
+## 6. Start the Docker containers
 ```sh
 docker compose up -d
 
@@ -85,7 +87,9 @@ http://localhost:5601
 # Credentials
 admin/myPass2403
 ```
-2. Compile and run consumer
+<br>
+
+## 7. Start DataStream Consumer(Using Apache Flink)
 ```sh
 mvn clean install package
 
@@ -97,7 +101,7 @@ com.example.demo.DemoApplication
 ```
 <br>
 
-## 6. Start the ingestor<br>
+## 8. Start the ingestor (produces data to Kafka)
 https://github.com/scaleiqarluk/scaleiQingestor_new
 
 ```sh
@@ -112,19 +116,45 @@ java -jar build/libs/ingestor-1.0-SNAPSHOT.jar
 ```
 <br>
 
-### 7. Query opensearch data using SQL
+### 9. Submit Flink job
+Code snippet of pom.xml showing java 11 usage compulsory for Flink apps compilation. It can run on Java 11 or later.
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>your.group.id</groupId>
+	<artifactId>flink-kafka-consumer</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<properties>
+		<java.version>11</java.version>
+```
+My system's Java and Maven details
 ```sh
-# Use this file
-com.example.demo.FlinkSQLOpensearch
+java --version
+# openjdk 17.0.11 2024-04-16
+# OpenJDK Runtime Environment (build 17.0.11+9)
+# OpenJDK 64-Bit Server VM (build 17.0.11+9, mixed mode, sharing)
 
-# This file runs properly using IntelliJ IDE, but I am not able to run using command line yet. It gives an error
+mvn -v
+# Apache Maven 3.8.8 (4c87b05d9aedce574290d1acc98575ed5eb6cd39)
+# Maven home: /opt/mvn8
+# Java version: 17.0.11, vendor: N/A, runtime: /usr/lib/jvm/java-17-openjdk
+# Default locale: en_IN, platform encoding: UTF-8
+# OS name: "linux", version: "6.9.0-1-manjaro", arch: "amd64", family: "unix"
+```
 
-Exception in thread "main" org.apache.flink.table.api.ValidationException: Could not find any factories that implement 'org.apache.flink.table.factories.CatalogStoreFactory' in the classpath.
-        at org.apache.flink.table.factories.FactoryUtil.discoverFactory(FactoryUtil.java:596)
-        at org.apache.flink.table.factories.TableFactoryUtil.findAndCreateCatalogStoreFactory(TableFactoryUtil.java:221)
-        at org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl.create(StreamTableEnvironmentImpl.java:121)
-        at org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(StreamTableEnvironment.java:122)
-        at com.example.demo.FlinkSQLOpensearch.main(FlinkSQLOpensearch.java:42)
+```sh
+# compile project
+mvn clean install package
+
+# Copy the jar in the contaner
+docker cp target/flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar jobmanager:/flink-consumer-0.0.1-SNAPSHOT.jar
+
+# Subject Flink Job
+docker exec -it jobmanager ./bin/flink run -c com.example.demo.FlinkSQLOpensearch /flink-consumer-0.0.1-SNAPSHOT.jar
 ```
 <br>
 
@@ -168,23 +198,4 @@ Flink-Kafka-consumer
 └── target
     ├── flink-kafka-consumer-1.0-SNAPSHOT.jar
     ├── flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
-
-Submit jobs to Apache Flink
-```sh
-java --version
-# openjdk 17.0.11 2024-04-16
-# OpenJDK Runtime Environment (build 17.0.11+9)
-# OpenJDK 64-Bit Server VM (build 17.0.11+9, mixed mode, sharing)
-
-mvn -v
-# Apache Maven 3.8.8 (4c87b05d9aedce574290d1acc98575ed5eb6cd39)
-# Maven home: /opt/mvn8
-# Java version: 17.0.11, vendor: N/A, runtime: /usr/lib/jvm/java-17-openjdk
-# Default locale: en_IN, platform encoding: UTF-8
-# OS name: "linux", version: "6.9.0-1-manjaro", arch: "amd64", family: "unix"
-
-docker cp target/flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar jobmanager:/flink-consumer-0.0.1-SNAPSHOT.jar
-
-docker exec -it jobmanager ./bin/flink run -c com.example.demo.FlinkSQLOpensearch /flink-consumer-0.0.1-SNAPSHOT.jar
 ```

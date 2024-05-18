@@ -12,7 +12,6 @@
 		<java.version>11</java.version>
 		<flink.version>1.18.0</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
-		<java.version>11</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
@@ -124,7 +123,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.example.demo.FlinkSQLOpensearch</mainClass>
+							<mainClass>com.example.demo.DemoApplication</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
