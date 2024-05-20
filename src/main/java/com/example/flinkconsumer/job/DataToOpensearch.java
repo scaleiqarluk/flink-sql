@@ -1,6 +1,7 @@
-package com.example.demo;
+package com.example.flinkconsumer.job;
 
 import com.google.gson.JsonParser;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
@@ -15,12 +16,10 @@ import org.apache.http.HttpHost;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.client.Requests;
 import org.opensearch.common.xcontent.XContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
-public class DemoApplication {
-
-    public static Logger log = LoggerFactory.getLogger(DemoApplication.class);
+@Component @Slf4j
+public class DataToOpensearch {
     private static class MyActionRequestFailureHandler implements FailureHandler {
         @Override
         public void onFailure(Throwable throwable) {
@@ -80,14 +79,10 @@ public class DemoApplication {
 
     private static String extractId(String json){
         return JsonParser.parseString(json)
-            .getAsJsonObject()
-            .get("meta")
-            .getAsJsonObject()
-            .get("id")
-            .getAsString();
+                .getAsJsonObject()
+                .get("meta")
+                .getAsJsonObject()
+                .get("id")
+                .getAsString();
     }
-
-
-
 }
-

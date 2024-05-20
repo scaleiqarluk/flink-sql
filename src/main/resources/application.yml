@@ -1,0 +1,7 @@
+flink:
+  jobmanager:
+    rpc:
+      address: localhost
+      port: 6123
+  taskmanager:
+    slots: 4

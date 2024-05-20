@@ -1,7 +1,6 @@
-package com.example.demo;
+package com.example.flinkconsumer.job;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -23,6 +22,7 @@ import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
+import org.springframework.stereotype.Component;
 
 import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
@@ -32,6 +32,7 @@ import java.security.KeyStore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Component
 public class FlinkSQLOpensearch {
     public static void main(String[] args) throws Exception {
 
@@ -55,10 +56,8 @@ public class FlinkSQLOpensearch {
 
         DataStream<Row> resultStream = tableEnv.toAppendStream(result, Row.class);
         resultStream.print();
-        // Print the result table
-//        tableEnv.toAppendStream(result, Row.class).print();
-        DataStreamSink<Row> rowDataStreamSink = tableEnv.toAppendStream(result, Row.class)
-                .addSink(new TabularSink());
+        resultStream.addSink(new TabularSink());
+
         // Execute the Flink job
         env.execute("OpenSearch SQL Job");
     }

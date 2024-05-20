@@ -117,21 +117,7 @@ java -jar build/libs/ingestor-1.0-SNAPSHOT.jar
 <br>
 
 ### 9. Submit Flink job
-Code snippet of pom.xml showing java 11 usage compulsory for Flink apps compilation. It can run on Java 11 or later.
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>your.group.id</groupId>
-	<artifactId>flink-kafka-consumer</artifactId>
-	<version>1.0-SNAPSHOT</version>
-
-	<properties>
-		<java.version>11</java.version>
-```
-My system's Java and Maven details
+My system's Java and Maven details for reference
 ```sh
 java --version
 # openjdk 17.0.11 2024-04-16
@@ -150,11 +136,17 @@ mvn -v
 # compile project
 mvn clean install package
 
-# Copy the jar in the contaner
-docker cp target/flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar jobmanager:/flink-consumer-0.0.1-SNAPSHOT.jar
+# Jars created in target directory
+tree target | grep .jar
+├── flink-kafka-consumer-0.0.1-SNAPSHOT.jar
+├── original-flink-kafka-consumer-0.0.1-SNAPSHOT.jar
 
-# Subject Flink Job
-docker exec -it jobmanager ./bin/flink run -c com.example.demo.FlinkSQLOpensearch /flink-consumer-0.0.1-SNAPSHOT.jar
+# Copy the jar in the contaner
+docker cp target/flink-kafka-consumer-0.0.1-SNAPSHOT.jar jobmanager:/flink-consumer-0.0.1-SNAPSHOT.jar
+
+# Subject Flink Job, select the class path you want as your main entry point
+# for example:  <com.example.demo.FlinkSQLOpensearch>
+docker exec -it jobmanager ./bin/flink run -c com.example.flinkconsumer.job.FlinkSQLOpensearch /flink-consumer-0.0.1-SNAPSHOT.jar
 ```
 <br>
 
