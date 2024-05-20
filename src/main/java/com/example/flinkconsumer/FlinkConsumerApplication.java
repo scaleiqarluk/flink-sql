@@ -13,7 +13,7 @@ public class FlinkConsumerApplication{
 
 		FlinkJobService flinkJobService = context.getBean(FlinkJobService.class);
 		try {
-			flinkJobService.runFlinkJob();
+			flinkJobService.runDataToOpensearchJob();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
