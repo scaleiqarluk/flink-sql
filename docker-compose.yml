@@ -1,4 +1,20 @@
 services:
+
+  mysql:
+    container_name: source-database
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3305:3306
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: customerdb
+    networks:
+      - opensearch-net
+
   opensearch:
     image: opensearchproject/opensearch:latest
     container_name: opensearch
@@ -53,6 +69,8 @@ services:
       - ./logstash-config:/usr/share/logstash/config/certs
     environment:
       - "xpack.monitoring.enabled=false"
+      - ACCESS_KEY=${ACCESS_KEY}
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       - opensearch
     networks:
