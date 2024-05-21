@@ -67,13 +67,11 @@ docker build -t my-logstash-with-opensearch .
 ```
 <br>
 
-## 5. Update logstash files
+## 5. Place .crt file for logstash
 ```sh
-# Update aws accesskey and secret in this file 
-logstash-config/logstash.conf
-
-# Place the localhost.crt in this folder (this file created in Step 3.Create SSL certificate)
-logstash-config
+# Place the localhost.crt in this folder (this file was created in 
+# Step 3.Create SSL certificate)
+logstash-config/
 ```
 <br>
 
@@ -151,7 +149,6 @@ docker exec -it jobmanager ./bin/flink run -c com.example.flinkconsumer.job.Flin
 <br>
 
 ### Files hierarchy of project - Flink-Kafka-consumer
-
 ```sh
 Flink-Kafka-consumer
 ├── docker-compose.yml
@@ -180,14 +177,21 @@ Flink-Kafka-consumer
 │   │   ├── java
 │   │   │   └── com
 │   │   │       └── example
-│   │   │           └── demo
-│   │   │               ├── DemoApplication.java
-│   │   │               └── FlinkSQLOpensearch.java
+│   │   │           └── flinkconsumer
+│   │   │               ├── config
+│   │   │               │   └── FlinkConfig.java
+│   │   │               ├── controller
+│   │   │               │   └── FlinkSQLController.java
+│   │   │               ├── FlinkConsumerApplication.java
+│   │   │               ├── job
+│   │   │               │   ├── DataToOpensearch.java
+│   │   │               │   └── FlinkSQLOpensearch.java
+│   │   │               └── service
+│   │   │                   └── FlinkJobService.java
 │   │   └── resources
-│   │       ├── application.properties
+│   │       ├── application.yml
 │   │       └── log4j.properties
-├── steps.md
 └── target
-    ├── flink-kafka-consumer-1.0-SNAPSHOT.jar
-    ├── flink-kafka-consumer-1.0-SNAPSHOT-jar-with-dependencies.jar
+    ├── flink-kafka-consumer-0.0.1-SNAPSHOT.jar
+    ├── original-flink-kafka-consumer-0.0.1-SNAPSHOT.jar
 ```
