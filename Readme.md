@@ -7,13 +7,13 @@
 # Consume Kafka messages using Apache Flink and push in Opensearch
 
 
-## 1. Install Java 11 and set environment
+## 1. Install Java 17 and set environment
 ```sh
-# Download JDK 11
+# Download JDK 17
 
 # edit ~/.bashrc(ubuntu) or /etc/profile(manjaro)
 # --------
-export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH=$PATH:$JAVA_HOME/bin
 ```
 <br>
@@ -24,8 +24,8 @@ export PATH=$PATH:$JAVA_HOME/bin
 
 # edit ~/.bashrc(ubuntu) or /etc/profile(manjaro)
 # --------
-export MAVEN_HOME=/opt/apache-maven-3.8.x
-export PATH=$PATH:$MAVEN_HOME/bin
+export M2_HOME=/opt/mvn
+export PATH=$PATH:$M2_HOME/bin
 ```
 <br>
 
@@ -47,9 +47,13 @@ openssl x509 -req -in localhost.csr -out localhost.crt -signkey localhost.key -d
 
 # Step 4: Add Certificate to Java Truststore:
 sudo keytool -import -file localhost.crt -alias localhost -keystore $JAVA_HOME/lib/security/cacerts
+# ---- If prompts for password, enter 'changeit'
 
 # List certificates
 keytool -list -keystore $JAVA_HOME/lib/security/cacerts 
+
+# Delete old certificate
+sudo keytool -delete -alias localhost -keystore $JAVA_HOME/lib/security/cacerts
 ```
 <br>
 
@@ -77,6 +81,9 @@ logstash-config/
 
 ## 6. Start the Docker containers
 ```sh
+# Make sure .env file is placed along with docker-compose.yml, it contains AWS credentials
+
+# Start docker
 docker compose up -d
 
 # At this step, Opensearch should be working in browser 
@@ -85,6 +92,16 @@ http://localhost:5601
 # Credentials
 admin/myPass2403
 ```
+
+## Open Ports required
+1. Minio: 9001
+1. Opensearch: 5601
+1. Mysql: 3305
+1. Reactapp: 3000
+1. Java DataStream Producer: 8082
+1. Java DataStream Consumer: 8083
+1. Java Data Ingestor to OpenSearch: 8081
+
 <br>
 
 ## 7. Start DataStream Consumer(Using Apache Flink)

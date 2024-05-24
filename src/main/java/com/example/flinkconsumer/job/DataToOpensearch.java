@@ -28,13 +28,9 @@ public class DataToOpensearch {
     }
     private static MyActionRequestFailureHandler my1 = new MyActionRequestFailureHandler();
 
-
-    // Read from Kafka topic "IngestorDataStreamDemo" -> Filter data -> insert in Kafka topic "target_topic"
+    final static StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
     public static void main(String[] args) throws Exception {
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-
         String kafkaBroker = "127.0.0.1:9092";
         String topic = "IngestorDataStreamDemo";
 

@@ -11,12 +11,12 @@ public class FlinkConsumerApplication{
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(FlinkConsumerApplication.class, args);
 
-		FlinkJobService flinkJobService = context.getBean(FlinkJobService.class);
-		try {
-			flinkJobService.runDataToOpensearchJob();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		FlinkJobService flinkJobService = context.getBean(FlinkJobService.class);
+//		try {
+//			flinkJobService.runDataToOpensearchJob();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
 	}
 }

@@ -5,3 +5,6 @@ flink:
       port: 6123
   taskmanager:
     slots: 4
+
+server:
+  port: 8083
