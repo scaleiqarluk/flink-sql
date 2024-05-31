@@ -66,6 +66,7 @@ services:
   opensearch:
     image: opensearchproject/opensearch:latest
     container_name: opensearch
+    restart: always
     environment:
       - cluster.name=my-cluster
       - node.name=my-node
@@ -106,6 +107,7 @@ services:
   
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:latest
+    restart: always
     ports:
       - 5601:5601
     expose:
@@ -117,6 +119,7 @@ services:
 
   logstash:
     image: my-logstash-with-opensearch
+    restart: always
     container_name: logstash
     volumes:
       - ./logstash-config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
@@ -132,6 +135,7 @@ services:
 
   kafka_b:
     image: bitnami/kafka:3.4
+    restart: always
     hostname: kafka_b
     container_name: kafka
     ports:
@@ -157,6 +161,7 @@ services:
 
   zookeeper:
     image: zookeeper:latest
+    restart: always
     ulimits:
       nofile:
         soft: 65536
@@ -169,6 +174,7 @@ services:
   flink-jobmanager:
     image: flink:1.18-java17
     container_name: jobmanager
+    restart: always
     expose:
       - "6123"
     ports:
@@ -182,6 +188,7 @@ services:
   flink-taskmanager:
     image: flink:1.18-java17
     container_name: taskmanager
+    restart: always
     expose:
       - "6121"
       - "6122"
