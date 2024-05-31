@@ -20,6 +20,6 @@ public class FlinkSQLController {
 
     @GetMapping("/dataToOpensearch")
     public void dataToOpensearchCall() throws Exception {
-        service.runDataToOpensearchJob();
+//        service.runDataToOpensearchJob();
     }
 }

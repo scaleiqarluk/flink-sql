@@ -5,8 +5,9 @@ target/
 !**/src/test/**/target/
 
 .env
+mysql_data
+mysql_data_primary
 minio-data
-mysql-data
 
 ### STS ###
 .apt_generated

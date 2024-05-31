@@ -17,19 +17,51 @@ services:
       - opensearch-net
 
   mysql:
-    container_name: source-database
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    container_name: mysql
+    image: mysql:8.3.0
     restart: always
-    ports:
-      - 3305:3306
-    volumes:
-      - ./mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: customerdb
+      MYSQL_PASSWORD: root
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - "3305:3306"
     networks:
       - opensearch-net
+
+  mysql-primary:
+    container_name: mysql-primary
+    image: mysql:8.3.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: customerdb
+      MYSQL_PASSWORD: root
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./mysql_data_primary:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - opensearch-net
+
+  # mysql:
+  #   container_name: mysql
+  #   image: mysql
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   restart: always
+  #   ports:
+  #     - 3306:3306
+  #   volumes:
+  #     - ./mysql-data-primary:/var/lib/mysql
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_DATABASE: root
+  #   networks:
+  #     - opensearch-net
 
   opensearch:
     image: opensearchproject/opensearch:latest
@@ -38,8 +70,12 @@ services:
       - cluster.name=my-cluster
       - node.name=my-node
       - discovery.type=single-node
+      - "discovery.seed_hosts=opensearch"
+      - "opensearch-node.attr.box_type=hot"
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Dopensearch.xcontent.depth.max=1000"
+      # - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m -Djdk.tls.client.protocols=TLSv1.2 -Djavax.net.ssl.keyStore=/usr/share/opensearch/config/keystore.jks -Djavax.net.ssl.keyStorePassword=keystore_password -Djavax.net.ssl.trustStore=/usr/share/opensearch/config/truststore.jks -Djavax.net.ssl.trustStorePassword=truststore_password -Dcom.sun.net.ssl.checkRevocation=false -Djdk.tls.server.protocols=TLSv1.2 -Djavax.net.ssl.sessionCacheSize=20480
+      # - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m -Djdk.tls.client.protocols=TLSv1.2 -Dcom.sun.net.ssl.checkRevocation=false -Djdk.tls.server.protocols=TLSv1.2 -Djavax.net.ssl.sessionCacheSize=20480
       - network.host=0.0.0.0
       - network.publish_host=0.0.0.0
       - http.port=9200
@@ -49,6 +85,7 @@ services:
       - plugins.security.ssl.transport.pemkey_filepath=/usr/share/opensearch/config/certs/localhost.key
       - plugins.security.ssl.transport.pemtrustedcas_filepath=/usr/share/opensearch/config/certs/localhost.crt
       - plugins.security.ssl.http.enabled=true
+      - plugins.security.ssl.transport.enabled=true
       - plugins.security.ssl.http.pemcert_filepath=/usr/share/opensearch/config/certs/localhost.crt
       - plugins.security.ssl.http.pemkey_filepath=/usr/share/opensearch/config/certs/localhost.key
       - plugins.security.ssl.http.pemtrustedcas_filepath=/usr/share/opensearch/config/certs/localhost.crt
@@ -57,7 +94,8 @@ services:
       - "9600:9600" # For node communication
       - "9300:9300"
     volumes:
-      - ./opensearch-config:/usr/share/opensearch/config/certs
+      # - ./opensearch-config:/usr/share/opensearch/config
+      - ./opensearch-config/certs:/usr/share/opensearch/config/certs
       # - opensearch-data:/usr/share/opensearch/data
     ulimits:
       memlock:
@@ -159,6 +197,7 @@ volumes:
   kafka_data:
     driver: local
   opensearch-data:
+  db_data:
 
 networks:
   opensearch-net:

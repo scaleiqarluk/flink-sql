@@ -55,7 +55,7 @@ public class DataToOpensearch {
 
                             // Create index request
                             IndexRequest indexRequest =  Requests.indexRequest()
-                                    .index("heya2_index") // Specify your index name
+                                    .index("stream_data_index") // Specify your index name
                                     .source(element, XContentType.JSON);
                             // Add index request to bulk processor
                             indexer.add(indexRequest);
