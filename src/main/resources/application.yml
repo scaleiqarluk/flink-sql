@@ -13,3 +13,16 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
+## Logging properties
+logging:
+  file.name: /home/arlukadmin/new_data/logs/Flink-Kafka-consumer.log
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+    file: "%d %-5level %logger : %msg%n"
+  level:
+    org.springframework.web: ERROR
+    com:
+      example:
+        flinkconsumer: DEBUG
+    org.hibernate: ERROR
