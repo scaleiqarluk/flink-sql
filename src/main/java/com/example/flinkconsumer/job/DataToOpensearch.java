@@ -18,6 +18,8 @@ import org.opensearch.client.Requests;
 import org.opensearch.common.xcontent.XContentType;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 @Component @Slf4j
 public class DataToOpensearch {
     private static class MyActionRequestFailureHandler implements FailureHandler {
@@ -32,7 +34,7 @@ public class DataToOpensearch {
 
     public static void main(String[] args) throws Exception {
         String kafkaBroker = "127.0.0.1:9092";
-        String topic = "IngestorDataStreamDemo";
+        String topic = args[0].toLowerCase();
 
         // kafka consumer
         KafkaSource<String> kafkaSource = KafkaSource
@@ -47,17 +49,21 @@ public class DataToOpensearch {
         DataStream<String> kafkaStream = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
 //        kafkaStream.print();
 
+        AtomicLong recordsSentCount = new AtomicLong(0);
         OpensearchSink<String> sink = new OpensearchSinkBuilder<String>()
                 .setHosts(new HttpHost("localhost", 9200, "https"))
                 .setEmitter(
                         (element, context, indexer) -> {
                             String id = extractId(element);
-
                             // Create index request
                             IndexRequest indexRequest =  Requests.indexRequest()
-                                    .index("stream_data_index") // Specify your index name
+                                    .index(topic) // Specify your index name
                                     .source(element, XContentType.JSON);
                             // Add index request to bulk processor
+
+                            recordsSentCount.incrementAndGet();
+                            log.info("Sent record: "+ recordsSentCount);
+
                             indexer.add(indexRequest);
                         }
                 )

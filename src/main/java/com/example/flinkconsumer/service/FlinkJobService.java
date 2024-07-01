@@ -14,8 +14,8 @@ public class FlinkJobService {
     @Autowired
     private FlinkSQLOpensearch flinkSQLOpensearch;
 
-    public void runDataToOpensearchJob() throws Exception {
-        dataToOpensearch.main(new String[]{});
+    public void runDataToOpensearchJob(String topic) throws Exception {
+        dataToOpensearch.main(new String[]{topic});
     }
 
     public void runFlinkSQLOpensearchJob() throws Exception {
