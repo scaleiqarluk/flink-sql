@@ -22,6 +22,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component @Slf4j
 public class DataToOpensearch {
+
+    final static StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
     private static class MyActionRequestFailureHandler implements FailureHandler {
         @Override
         public void onFailure(Throwable throwable) {
@@ -30,14 +33,9 @@ public class DataToOpensearch {
     }
     private static MyActionRequestFailureHandler my1 = new MyActionRequestFailureHandler();
 
-    final static StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-    public static void main(String[] args) throws Exception {
+    private KafkaSource<String> kafkaSource(String topic){
         String kafkaBroker = "127.0.0.1:9092";
-        String topic = args[0].toLowerCase();
-
-        // kafka consumer
-        KafkaSource<String> kafkaSource = KafkaSource
+        return KafkaSource
                 .<String>builder()
                 .setBootstrapServers(kafkaBroker)
                 .setTopics(topic)
@@ -45,12 +43,11 @@ public class DataToOpensearch {
                 .setStartingOffsets(OffsetsInitializer.earliest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
+    }
 
-        DataStream<String> kafkaStream = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
-//        kafkaStream.print();
-
+    private OpensearchSink<String> sink(String topic){
         AtomicLong recordsSentCount = new AtomicLong(0);
-        OpensearchSink<String> sink = new OpensearchSinkBuilder<String>()
+        return new OpensearchSinkBuilder<String>()
                 .setHosts(new HttpHost("localhost", 9200, "https"))
                 .setEmitter(
                         (element, context, indexer) -> {
@@ -74,9 +71,20 @@ public class DataToOpensearch {
                 .setBulkFlushMaxActions(10)
                 .setBulkFlushBackoffStrategy(FlushBackoffType.EXPONENTIAL, 5, 10000)
                 .build();
+    }
+
+    public void jobSubmitter(String topicName) throws Exception {
+
+        String topic = topicName.toLowerCase();
+        log.info("JobSubmitter: topicName: {}", topicName);
+        KafkaSource<String> kafkaSource = kafkaSource(topic);
+        DataStream<String> kafkaStream = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
+//        kafkaStream.print();
+
+        OpensearchSink<String> sink = sink(topicName);
 
         kafkaStream.sinkTo(sink);
-        env.execute("Kafka Consumer Example");
+        env.execute("Kafka Consumer for topic: "+ topicName);
     }
 
     private static String extractId(String json){
