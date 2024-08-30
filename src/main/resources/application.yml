@@ -16,7 +16,7 @@ server:
 
 ## Logging properties
 logging:
-  file.name: /home/arlukadmin/new_data/logs/Flink-Kafka-consumer.log
+  file.name: /mnt/new_data/logs/Flink-Kafka-consumer.log
   pattern:
     console: "%d %-5level %logger : %msg%n"
     file: "%d %-5level %logger : %msg%n"
