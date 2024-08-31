@@ -51,7 +51,7 @@ public class DataToOpensearch {
                 .setHosts(new HttpHost("localhost", 9200, "https"))
                 .setEmitter(
                         (element, context, indexer) -> {
-                            String id = extractId(element);
+//                            String id = extractId(element);
                             // Create index request
                             IndexRequest indexRequest =  Requests.indexRequest()
                                     .index(topic) // Specify your index name
